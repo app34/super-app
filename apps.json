@@ -4,5 +4,17 @@
     "name": "HK Amenities",
     "path": "hk-amenities/index.html",
     "icon": "🏨"
+  },
+  {
+    "id": "rooms",
+    "name": "Room Status",
+    "path": "room-status/index.html",
+    "icon": "🛏️"
+  },
+  {
+    "id": "translate",
+    "name": "Translation",
+    "path": "translation/index.html",
+    "icon": "🌐"
   }
 ]
