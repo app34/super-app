@@ -214,7 +214,7 @@
       display: none;
     }
 
-    /* iOS Install Instructions Modal */
+    /* iOS Install Modal */
     .ios-modal {
       position: fixed;
       inset: 0;
@@ -312,7 +312,7 @@
     <div class="ios-content">
       <h3>Install Super App on iPhone</h3>
       <ol>
-        <li>Tap the <strong>Share</strong> button <span style="font-size:1.2rem">⎢</span> at the bottom of Safari</li>
+        <li>Tap the <strong>Share</strong> button at the bottom of Safari</li>
         <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
         <li>Tap <strong>Add</strong> in the top right</li>
       </ol>
@@ -369,14 +369,12 @@
       deferredPrompt = null;
     });
 
-    // Hide install button if already installed
     if (isInStandalone || window.matchMedia('(display-mode: standalone)').matches) {
       installBtn.classList.add('hidden');
     }
 
     installBtn.addEventListener('click', async () => {
       if (isIOS) {
-        // Show iOS instructions
         iosModal.classList.add('show');
         closeMenu();
         return;
@@ -468,8 +466,10 @@
 
       const iframe = document.createElement('iframe');
       iframe.src = app.path;
+
+      // Updated sandbox to allow WhatsApp
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation allow-top-navigation-by-user-activation');
       iframe.setAttribute('allow', 'microphone; camera; geolocation');
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-top-navigation-by-user-activation');
 
       iframe.onload = () => {
         placeholder.style.display = 'none';
