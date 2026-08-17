@@ -95,7 +95,27 @@
     .header-right { display: flex; align-items: center; gap: 6px; }
     .date-badge { font-size: 0.7rem; font-weight: 700; color: var(--text-sub); background: rgba(255, 255, 255, 0.05); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--card-border); }
 
-    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .toolbar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      gap: 8px; 
+      margin-bottom: 12px; 
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-left {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar-right {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
 
     .btn {
       background: var(--card-bg);
@@ -111,12 +131,16 @@
       gap: 6px;
       transition: var(--transition);
       -webkit-appearance: none;
+      white-space: nowrap;
     }
 
     .btn:active { transform: scale(0.97); }
     .btn-primary { background: linear-gradient(135deg, var(--primary), #2563eb); border: none; color: #fff; box-shadow: 0 4px 12px var(--primary-glow); }
     .btn-icon { padding: 6px; border-radius: 50%; width: 32px; height: 32px; justify-content: center; }
     .btn-danger-outline { border-color: rgba(239, 68, 68, 0.3); color: #f87171; background: rgba(239, 68, 68, 0.05); }
+    .btn-shift-auto { border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; background: rgba(59, 130, 246, 0.08); }
+    .btn-shift-morning { border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; background: rgba(251, 191, 36, 0.08); }
+    .btn-shift-evening { border-color: rgba(139, 92, 246, 0.4); color: #a78bfa; background: rgba(139, 92, 246, 0.08); }
 
     .empty-state {
       grid-column: 1 / -1;
@@ -435,6 +459,23 @@
       .shift-block { background: #f1f5f9; }
       .shift-block span strong { color: #000; }
     }
+    
+    /* Mode indicator badge */
+    .mode-indicator {
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mode-indicator.auto { border-color: rgba(59, 130, 246, 0.4); color: #60a5fa; background: rgba(59, 130, 246, 0.08); }
+    .mode-indicator.morning { border-color: rgba(251, 191, 36, 0.4); color: #fbbf24; background: rgba(251, 191, 36, 0.08); }
+    .mode-indicator.evening { border-color: rgba(139, 92, 246, 0.4); color: #a78bfa; background: rgba(139, 92, 246, 0.08); }
   </style>
 </head>
 <body>
@@ -452,8 +493,16 @@
     </header>
 
     <div class="toolbar">
-      <button class="btn btn-primary" onclick="openHistoryModal()">📜 History Logs</button>
-      <button class="btn btn-danger-outline" onclick="finishAndArchiveDay()">Finish & Archive</button>
+      <div class="toolbar-left">
+        <button class="btn btn-primary" onclick="openHistoryModal()">📜 History</button>
+        <button class="btn btn-danger-outline" onclick="finishAndArchiveDay()">📦 Archive</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn" id="shiftModeBtn" onclick="cycleShiftMode()" title="Switch view mode for all rooms">
+          🔄 Auto
+        </button>
+        <span class="mode-indicator auto" id="modeIndicator">🌐 Auto</span>
+      </div>
     </div>
 
     <div class="room-grid" id="roomGrid"></div>
@@ -657,8 +706,61 @@
     let historyCurrentPage = 1;
     const historyItemsPerPage = 5;
 
+    // ===== SHIFT VIEW MODE =====
+    let shiftViewMode = 'auto'; // 'auto' | 'morning' | 'evening'
+    const SHIFT_MODE_KEY = 'rsp_shift_mode';
+
+    function loadShiftMode() {
+      try {
+        const saved = localStorage.getItem(SHIFT_MODE_KEY);
+        if (saved === 'morning' || saved === 'evening' || saved === 'auto') {
+          shiftViewMode = saved;
+        } else {
+          shiftViewMode = 'auto';
+        }
+      } catch (_) {
+        shiftViewMode = 'auto';
+      }
+      updateShiftModeUI();
+    }
+
+    function saveShiftMode() {
+      try {
+        localStorage.setItem(SHIFT_MODE_KEY, shiftViewMode);
+      } catch (_) { /* ignore */ }
+    }
+
+    function updateShiftModeUI() {
+      const btn = document.getElementById('shiftModeBtn');
+      const indicator = document.getElementById('modeIndicator');
+      
+      const labels = {
+        auto: { btn: '🔄 Auto', ind: '🌐 Auto', cls: 'auto' },
+        morning: { btn: '🌅 Morning', ind: '🌅 Morning', cls: 'morning' },
+        evening: { btn: '🌆 Evening', ind: '🌆 Evening', cls: 'evening' }
+      };
+      
+      const info = labels[shiftViewMode] || labels.auto;
+      btn.textContent = info.btn;
+      indicator.textContent = info.ind;
+      indicator.className = 'mode-indicator ' + info.cls;
+      
+      saveShiftMode();
+      renderGrid();
+    }
+
+    function cycleShiftMode() {
+      const modes = ['auto', 'morning', 'evening'];
+      const idx = modes.indexOf(shiftViewMode);
+      shiftViewMode = modes[(idx + 1) % modes.length];
+      updateShiftModeUI();
+    }
+
+    // ===== END SHIFT VIEW MODE =====
+
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-GB', { weekday:'short', month:'short', day:'numeric' });
+      loadShiftMode();
       loadStorage();
       renderGrid();
       restoreActiveModalState();
@@ -753,6 +855,17 @@
       localStorage.removeItem('rsp_active_modal');
     }
 
+    // ===== UPDATED: Auto mode uses ONLY time of day =====
+    function getDisplayShiftKey(roomNum) {
+      // If forced mode is set, use it
+      if (shiftViewMode === 'morning') return 'shift1';
+      if (shiftViewMode === 'evening') return 'shift2';
+      
+      // Auto mode: only use time of day (≥ 16:00 = evening)
+      const currentHour = new Date().getHours();
+      return (currentHour >= 16) ? 'shift2' : 'shift1';
+    }
+
     function renderGrid() {
       const grid = document.getElementById('roomGrid');
       grid.innerHTML = '';
@@ -767,9 +880,6 @@
         return;
       }
 
-      const currentHour = new Date().getHours();
-      const isEveningTime = currentHour >= 16;
-
       roomsList.forEach(roomNum => {
         if (!roomsData[roomNum] || !roomsData[roomNum].shift1) {
           roomsData[roomNum] = createEmptyRoomObj();
@@ -777,8 +887,7 @@
         const s1 = roomsData[roomNum].shift1;
         const s2 = roomsData[roomNum].shift2;
 
-        const isMorningDone = !!(s1.in && s1.out);
-        const displayShiftKey = (isEveningTime || isMorningDone) ? 'shift2' : 'shift1';
+        const displayShiftKey = getDisplayShiftKey(roomNum);
         const displayShift = roomsData[roomNum][displayShiftKey];
 
         let statusClass = '';
@@ -815,6 +924,7 @@
         card.onclick = () => openRoomModal(roomNum);
 
         const shiftTitleText = displayShiftKey === 'shift1' ? '🌅 Morning Shift' : '🌆 Evening Shift';
+        const modeSuffix = shiftViewMode !== 'auto' ? ` (${shiftViewMode === 'morning' ? '🌅' : '🌆'})` : '';
 
         card.innerHTML = `
           <div class="room-header">
@@ -823,7 +933,7 @@
           </div>
           
           <div class="shift-block">
-            <div class="shift-title">${shiftTitleText}</div>
+            <div class="shift-title">${shiftTitleText}${modeSuffix}</div>
             <span><span>IN</span> <strong>${displayShift.in || '--:--'}</strong></span>
             <span><span>OUT</span> <strong>${displayShift.out || '--:--'}</strong></span>
             ${displayShift.beddingChanged ? `<div class="bedding-ticket-badge">🛏️ Beddings Changed</div>` : ''}
@@ -918,6 +1028,7 @@
       });
     }
 
+    // ===== UPDATED: Modal default shift uses same logic =====
     function openRoomModal(roomNum, forcedShift = null) {
       activeRoomId = roomNum;
       if (!roomsData[roomNum] || !roomsData[roomNum].shift1) {
@@ -927,14 +1038,14 @@
       if (forcedShift) {
         activeShift = forcedShift;
       } else {
-        const s1 = roomsData[roomNum].shift1;
-        const isMorningCompleted = !!(s1.in && s1.out);
-        const currentHour = new Date().getHours();
-
-        if (currentHour >= 16 || isMorningCompleted) {
+        if (shiftViewMode === 'morning') {
+          activeShift = 'shift1';
+        } else if (shiftViewMode === 'evening') {
           activeShift = 'shift2';
         } else {
-          activeShift = 'shift1';
+          // Auto: use time of day
+          const currentHour = new Date().getHours();
+          activeShift = (currentHour >= 16) ? 'shift2' : 'shift1';
         }
       }
       
