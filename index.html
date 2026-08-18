@@ -74,10 +74,10 @@
       to { transform: rotate(360deg); }
     }
 
-    /* Floating Hamburger Button */
+    /* Floating Hamburger Button - Fixed for iOS */
     .menu-btn {
       position: fixed;
-      top: 18px;
+      top: calc(18px + env(safe-area-inset-top));
       left: 18px;
       width: 46px;
       height: 46px;
@@ -467,7 +467,7 @@
       const iframe = document.createElement('iframe');
       iframe.src = app.path;
 
-      // Updated sandbox to allow WhatsApp
+      // Allow WhatsApp and other external links
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation allow-top-navigation-by-user-activation');
       iframe.setAttribute('allow', 'microphone; camera; geolocation');
 
