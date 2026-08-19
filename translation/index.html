@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
     <style>
-        /* ===== FULL HEIGHT IFRAME FILL - ADDED ===== */
+        /* ===== FULL HEIGHT & WIDTH IFRAME FILL ===== */
         html, body {
             height: 100%;
             height: 100dvh;
@@ -22,6 +22,7 @@
             padding: 0;
             overflow: auto;
             overscroll-behavior: none;
+            width: 100%;
         }
 
         /* ===== CSS Variables ===== */
@@ -104,26 +105,29 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 16px;
+            padding: 12px;
             transition: background-color var(--transition), color var(--transition);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            width: 100%;
+            min-height: 100%;
         }
 
-        /* ===== Glass Card ===== */
+        /* ===== Glass Card — now full width ===== */
         .app-card {
             width: 100%;
-            max-width: 680px;
+            max-width: 100%;
             background: var(--bg-card);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 24px;
+            padding: 24px 28px;
             transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
             position: relative;
             overflow: hidden;
+            flex: 1 1 auto;
         }
 
         .app-card::before {
@@ -318,7 +322,7 @@
         textarea {
             resize: vertical;
             min-height: 80px;
-            max-height: 180px;
+            max-height: 200px;
         }
 
         textarea:focus {
@@ -596,7 +600,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            max-height: 170px;
+            max-height: 200px;
             overflow-y: auto;
             padding: 2px 0;
             scrollbar-width: thin;
@@ -941,7 +945,7 @@
         /* ===== Responsive ===== */
         @media (max-width: 600px) {
             body {
-                padding: 10px;
+                padding: 8px;
             }
             .app-card {
                 padding: 16px;
@@ -1052,7 +1056,6 @@
         }
     </style>
 </head>
-
 <body>
 
     <!-- Toast -->
@@ -1079,6 +1082,10 @@
                 <option value="zh">Chinese</option>
                 <option value="ja">Japanese</option>
                 <option value="ko">Korean</option>
+                <option value="tr">Turkish</option>
+                <option value="ru">Russian</option>
+                <option value="si">Sinhala</option>
+                <option value="ta">Tamil</option>
             </select>
             <button class="swap-btn" id="swapBtn" aria-label="Swap languages">⇄</button>
             <select id="targetLang" aria-label="Target language">
@@ -1086,6 +1093,10 @@
                 <option value="zh" selected>Chinese</option>
                 <option value="ja">Japanese</option>
                 <option value="ko">Korean</option>
+                <option value="tr">Turkish</option>
+                <option value="ru">Russian</option>
+                <option value="si">Sinhala</option>
+                <option value="ta">Tamil</option>
             </select>
         </div>
 
@@ -1633,7 +1644,16 @@
                         return;
                     }
                     window.speechSynthesis.cancel();
-                    const langMap = { en: 'en-US', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR' };
+                    const langMap = {
+                        en: 'en-US',
+                        zh: 'zh-CN',
+                        ja: 'ja-JP',
+                        ko: 'ko-KR',
+                        tr: 'tr-TR',
+                        ru: 'ru-RU',
+                        si: 'si-LK',
+                        ta: 'ta-IN'
+                    };
                     const lang = langMap[langCode] || 'en-US';
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = lang;
@@ -1698,7 +1718,16 @@
             let silenceTimer = null;
             const SILENCE_TIMEOUT = 2000;
 
-            const langMap = { en: 'en-US', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR' };
+            const langMap = {
+                en: 'en-US',
+                zh: 'zh-CN',
+                ja: 'ja-JP',
+                ko: 'ko-KR',
+                tr: 'tr-TR',
+                ru: 'ru-RU',
+                si: 'si-LK',
+                ta: 'ta-IN'
+            };
 
             function getRecognitionLang() {
                 return langMap[sourceLang.value] || 'en-US';
