@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Minibar Touch System - Professional Edition</title>
 
-  <!-- ===== PWA META TAGS (ADDED) ===== -->
+  <!-- ===== PWA META TAGS ===== -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
 
@@ -16,7 +16,7 @@
 
   <style>
     /* ============================================
-    FULL HEIGHT IFRAME FILL - UPDATED
+    FULL HEIGHT IFRAME FILL
     ============================================ */
     html, body { 
       background: var(--bg); color: var(--text); margin: 0; padding: 0; 
@@ -48,6 +48,16 @@
       --btn-step-size: 20px;
       --btn-step-font: 0.8rem;
       --step-val-width: 16px;
+      
+      /* Category Colors */
+      --cat-food: #fbbf24;
+      --cat-food-bg: rgba(251, 191, 36, 0.10);
+      --cat-soft: #34d399;
+      --cat-soft-bg: rgba(52, 211, 153, 0.10);
+      --cat-alc: #f87171;
+      --cat-alc-bg: rgba(248, 113, 113, 0.10);
+      --cat-snack: #fb923c;
+      --cat-snack-bg: rgba(251, 146, 60, 0.10);
     }
 
     body.light-mode {
@@ -62,9 +72,24 @@
       --success: #10b981;
       --success-bg: #dcfce7;
       --success-border: #16a34a;
+      --cat-food-bg: rgba(251, 191, 36, 0.15);
+      --cat-soft-bg: rgba(52, 211, 153, 0.15);
+      --cat-alc-bg: rgba(248, 113, 113, 0.15);
+      --cat-snack-bg: rgba(251, 146, 60, 0.15);
     }
 
     * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    /* ===== CATEGORY COLOR STYLES ===== */
+    .item-card.cat-food { border-left: 4px solid var(--cat-food); background: var(--cat-food-bg); }
+    .item-card.cat-soft { border-left: 4px solid var(--cat-soft); background: var(--cat-soft-bg); }
+    .item-card.cat-alc { border-left: 4px solid var(--cat-alc); background: var(--cat-alc-bg); }
+    .item-card.cat-snack { border-left: 4px solid var(--cat-snack); background: var(--cat-snack-bg); }
+
+    .item-card.has-qty.cat-food { border-color: var(--cat-food); border-left-width: 4px; box-shadow: 0 0 12px rgba(251, 191, 36, 0.2); }
+    .item-card.has-qty.cat-soft { border-color: var(--cat-soft); border-left-width: 4px; box-shadow: 0 0 12px rgba(52, 211, 153, 0.2); }
+    .item-card.has-qty.cat-alc { border-color: var(--cat-alc); border-left-width: 4px; box-shadow: 0 0 12px rgba(248, 113, 113, 0.2); }
+    .item-card.has-qty.cat-snack { border-color: var(--cat-snack); border-left-width: 4px; box-shadow: 0 0 12px rgba(251, 146, 60, 0.2); }
 
     .btn-cool {
       background: var(--card); border: 1px solid var(--border); color: var(--text);
@@ -85,6 +110,9 @@
 
     .btn-danger-cool { background: #dc2626; color: white; border: none; font-weight: 700; }
     .btn-danger-cool:hover { background: #b91c1c; }
+
+    .btn-warning-cool { background: #f59e0b; color: #0f172a; border: none; font-weight: 700; }
+    .btn-warning-cool:hover { background: #d97706; }
 
     .top-header {
       background: var(--card); padding: 6px 10px; border-bottom: 1px solid var(--border);
@@ -207,11 +235,13 @@
     }
 
     .item-card {
-      background: var(--bg); border-radius: 6px; border: 1px solid var(--border);
+      border-radius: 6px; 
       padding: var(--item-card-padding); display: flex; flex-direction: column;
       justify-content: space-between; gap: 4px; min-width: 0; width: 100%;
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
     }
-    .item-card.has-qty { border-color: var(--primary); background: #0284c71a; }
+    .item-card.has-qty { border-width: 1.5px; }
     
     .item-name { 
       font-weight: 600; font-size: var(--item-font-size); color: var(--text); line-height: 1.15; 
@@ -252,6 +282,75 @@
       font-family: monospace; font-size: 0.75rem; resize: vertical; outline: none; line-height: 1.4;
       -webkit-appearance: none;
     }
+
+    .category-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px 2px;
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    .legend-swatch.food { background: var(--cat-food); }
+    .legend-swatch.soft { background: var(--cat-soft); }
+    .legend-swatch.alc { background: var(--cat-alc); }
+    .legend-swatch.snack { background: var(--cat-snack); }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      max-width: 90%;
+    }
+    .toast-msg {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: auto;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .toast-msg.success { border-color: var(--success); }
+    .toast-msg.error { border-color: #dc2626; }
+    .toast-msg.warning { border-color: #f59e0b; }
+    .toast-msg .toast-icon { font-size: 1rem; }
   </style>
 </head>
 <body class="dark-mode">
@@ -321,6 +420,12 @@
           <button class="btn-action-icon" onclick="closeModal()">✕</button>
         </div>
       </div>
+      <div class="category-legend" id="categoryLegend">
+        <span class="legend-item"><span class="legend-swatch food"></span> Food</span>
+        <span class="legend-item"><span class="legend-swatch soft"></span> Soft Drinks</span>
+        <span class="legend-item"><span class="legend-swatch alc"></span> Alcohol</span>
+        <span class="legend-item"><span class="legend-swatch snack"></span> Snacks</span>
+      </div>
       <div class="modal-body" id="modalItemsContainer"></div>
       <div class="modal-footer">
         <button class="btn-cool btn-primary-cool" style="width:100%; padding: 6px;" onclick="saveLocally()">
@@ -339,8 +444,8 @@
       </div>
       <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
         <div class="tab-nav">
-          <button class="tab-btn active" id="tabExportTextBtn" onclick="switchExportTab('text')">Share as Simple Text</button>
-          <button class="tab-btn" id="tabExportXLBtn" onclick="switchExportTab('xl')">Download Excel (.xlsx)</button>
+          <button class="tab-btn active" id="tabExportTextBtn" onclick="switchExportTab('text')">📝 Simple Text</button>
+          <button class="tab-btn" id="tabExportXLBtn" onclick="switchExportTab('xl')">📊 Excel</button>
         </div>
 
         <div id="exportTextView">
@@ -348,16 +453,22 @@
           <textarea id="exportTextContent" class="code-area" readonly></textarea>
           <div style="display:flex; gap:6px; margin-top:8px;">
             <button class="btn-cool btn-primary-cool" style="flex:1;" onclick="copyExportText()">
-              <i data-lucide="copy" style="width:12px;"></i> Copy Simple Text
+              <i data-lucide="copy" style="width:12px;"></i> Copy Text
             </button>
           </div>
         </div>
 
         <div id="exportXLView" style="display:none;">
-          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:10px;">Generate standard styled workbook for <b><span class="activeZoneLabel">Beach</span> Zone</b>:</div>
-          <button class="btn-cool btn-success-cool" style="width:100%; padding:8px;" onclick="exportToExcel()">
-            <i data-lucide="file-spreadsheet" style="width:14px;"></i> Download <span class="activeZoneLabel">Beach</span> Zone XL
-          </button>
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:6px;">Generate a formatted Excel workbook for <b><span class="activeZoneLabel">Beach</span> Zone</b>:</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn-cool btn-success-cool" style="flex:1; min-width:120px; padding:8px;" id="downloadXlBtn" onclick="downloadXL()">
+              <i data-lucide="download" style="width:14px;"></i> Download XL
+            </button>
+            <button class="btn-cool btn-warning-cool" style="flex:1; min-width:120px; padding:8px;" id="shareXlBtn" onclick="shareXL()">
+              <i data-lucide="share-2" style="width:14px;"></i> Share XL
+            </button>
+          </div>
+          <div style="margin-top:6px; font-size:0.68rem; color:var(--muted);" id="xlStatusText">Ready to export</div>
         </div>
       </div>
     </div>
@@ -372,9 +483,9 @@
       </div>
       <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
         <div class="tab-nav">
-          <button class="tab-btn active" id="tabImpTextBtn" onclick="switchImportTab('text')">Paste Text</button>
-          <button class="tab-btn" id="tabImpXLBtn" onclick="switchImportTab('xl')">Upload XL</button>
-          <button class="tab-btn" id="tabImpHistBtn" onclick="switchImportTab('history')">From History</button>
+          <button class="tab-btn active" id="tabImpTextBtn" onclick="switchImportTab('text')">📝 Paste Text</button>
+          <button class="tab-btn" id="tabImpXLBtn" onclick="switchImportTab('xl')">📊 Upload XL</button>
+          <button class="tab-btn" id="tabImpHistBtn" onclick="switchImportTab('history')">📜 From History</button>
         </div>
 
         <div id="importTextView">
@@ -388,9 +499,10 @@
         <div id="importXLView" style="display:none;">
           <div style="font-size:0.72rem; color:var(--muted); margin-bottom:8px;">Select an exported Excel sheet (.xlsx) to parse:</div>
           <input type="file" id="importXLFileInput" accept=".xlsx" style="font-size:0.75rem; color:var(--muted); width:100%; margin-bottom:10px;">
-          <button class="btn-cool btn-success-cool" style="width:100%; padding:6px;" onclick="importFromExcelFile()">
+          <button class="btn-cool btn-success-cool" style="width:100%; padding:6px;" id="importXlBtn" onclick="importFromExcelFile()">
             <i data-lucide="upload" style="width:12px;"></i> Parse & Load Excel Sheet
           </button>
+          <div style="margin-top:6px; font-size:0.68rem; color:var(--muted);" id="importXlStatus">Select a file and click import</div>
         </div>
 
         <div id="importHistoryView" style="display:none;">
@@ -433,9 +545,10 @@
               <label style="font-weight:600; display:block; margin-bottom:2px;">Water Zone File (.xlsx):</label>
               <input type="file" id="uploadWaterFile" accept=".xlsx" style="font-size:0.72rem; color:var(--muted);">
             </div>
-            <button class="btn-cool btn-primary-cool" style="padding:6px; margin-top:4px;" onclick="mergeAndExportMasterXL()">
+            <button class="btn-cool btn-primary-cool" style="padding:6px; margin-top:4px;" id="mergeMasterBtn" onclick="mergeAndExportMasterXL()">
               <i data-lucide="combine" style="width:13px;"></i> Merge & Download Master XL
             </button>
+            <div style="font-size:0.68rem; color:var(--muted);" id="mergeStatusText">Select both files above to merge</div>
           </div>
         </div>
 
@@ -485,8 +598,10 @@
     </div>
   </div>
 
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <script>
-    // ===== ADDED MISSING VILLA 601 =====
     const beachVillas = [101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307];
     const waterVillas = [401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,601,602,603,604,605,606];
 
@@ -521,6 +636,34 @@
     let undoStack = [];
     let redoStack = [];
 
+    // ===== TOAST SYSTEM =====
+    let toastTimeout = null;
+
+    function showToast(message, type = 'success', duration = 3000) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      const toast = document.createElement('div');
+      toast.className = `toast-msg ${type}`;
+      toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span> ${message}`;
+      container.appendChild(toast);
+      
+      // Trigger animation
+      requestAnimationFrame(() => {
+        toast.classList.add('show');
+      });
+      
+      // Auto-remove after duration
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (toast.parentNode) toast.remove();
+        }, 300);
+        toastTimeout = null;
+      }, duration);
+    }
+
+    // ===== UNDO/REDO =====
     function pushState() {
       undoStack.push(JSON.stringify(localData));
       redoStack = [];
@@ -534,6 +677,7 @@
       localStorage.setItem('minibar_entries', JSON.stringify(localData));
       renderGrid();
       updateUndoRedoUI();
+      showToast('Undo successful', 'info');
     }
 
     function redo() {
@@ -543,6 +687,7 @@
       localStorage.setItem('minibar_entries', JSON.stringify(localData));
       renderGrid();
       updateUndoRedoUI();
+      showToast('Redo successful', 'info');
     }
 
     function updateUndoRedoUI() {
@@ -550,6 +695,7 @@
       document.getElementById('btnRedo').disabled = redoStack.length === 0;
     }
 
+    // ===== CLEAN & FINISH =====
     function cleanActiveWorkspace() {
       if (Object.keys(localData).length === 0) return;
       if (confirm("Are you sure you want to clear the active grid?")) {
@@ -557,13 +703,14 @@
         localData = {};
         localStorage.setItem('minibar_entries', JSON.stringify(localData));
         renderGrid();
+        showToast('Workspace cleared', 'warning');
       }
     }
 
     function finishDayAutoSave() {
       const entryCount = Object.keys(localData).length;
       if (entryCount === 0) {
-        alert("No entries to finish for today!");
+        showToast('No entries to finish', 'warning');
         return;
       }
 
@@ -582,14 +729,18 @@
         localData = {};
         localStorage.setItem('minibar_entries', JSON.stringify(localData));
         renderGrid();
-        alert("Shift completed and archived to History successfully!");
+        showToast(`✅ Shift archived! ${entryCount} rooms saved`, 'success');
       }
     }
 
+    // ===== EXPORT / SHARE =====
     function openExportModal() {
       document.querySelectorAll('.activeZoneLabel').forEach(el => el.innerText = currentZone);
       generateExportText();
       document.getElementById('exportModalOverlay').classList.add('open');
+      document.getElementById('xlStatusText').textContent = 'Ready to export';
+      document.getElementById('downloadXlBtn').disabled = false;
+      document.getElementById('shareXlBtn').disabled = false;
     }
     function closeExportModal() { document.getElementById('exportModalOverlay').classList.remove('open'); }
 
@@ -634,20 +785,197 @@
       area.setSelectionRange(0, 99999);
       try {
         navigator.clipboard.writeText(area.value).then(() => {
-          alert("Formatted simple text copied to clipboard!");
+          showToast('Text copied to clipboard!', 'success');
         }).catch(() => {
           document.execCommand('copy');
-          alert("Formatted simple text copied to clipboard!");
+          showToast('Text copied to clipboard!', 'success');
         });
       } catch(e) {
         document.execCommand('copy');
-        alert("Formatted simple text copied to clipboard!");
+        showToast('Text copied to clipboard!', 'success');
       }
     }
 
+    // ===== GENERATE EXCEL BLOB (shared between download & share) =====
+    async function generateExcelBlob(zone = null) {
+      const targetZone = zone || currentZone;
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet(`${targetZone} Zone Matrix`);
+      const exportVillas = (targetZone === 'Beach' ? beachVillas : waterVillas).map(String);
+      const dateVal = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      sheet.mergeCells(1, 1, 1, exportVillas.length + 6);
+      const titleCell = sheet.getCell(1, 1);
+      titleCell.value = `MINI BAR CONSUMPTION REPORT - ${targetZone.toUpperCase()} ZONE`;
+      titleCell.font = { name: "Inter", size: 14, bold: true, color: { argb: "FFFFFF" } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "0F172A" } };
+      titleCell.alignment = { horizontal: "center", vertical: "middle" };
+      sheet.getRow(1).height = 36;
+
+      sheet.mergeCells(2, 1, 2, exportVillas.length + 6);
+      const subCell = sheet.getCell(2, 1);
+      subCell.value = `Date: ${dateVal} | Generated on: ${new Date().toLocaleString()} | Active Zone: ${targetZone}`;
+      subCell.font = { name: "Inter", size: 9, italic: true, color: { argb: "64748B" } };
+      subCell.alignment = { horizontal: "center", vertical: "middle" };
+      sheet.getRow(2).height = 20;
+
+      sheet.addRow([]);
+
+      const headerValues = ["S.no", "Date", "ARTICLE", "Category", "UNIT", "Opening Room", ...exportVillas];
+      const headerRow = sheet.addRow(headerValues);
+      headerRow.height = 26;
+
+      const borderStyle = {
+        top: { style: 'thin', color: { argb: 'CBD5E1' } },
+        left: { style: 'thin', color: { argb: 'CBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+        right: { style: 'thin', color: { argb: 'CBD5E1' } }
+      };
+
+      headerRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "1E293B" } };
+        cell.font = { name: "Inter", size: 10, bold: true, color: { argb: "FFFFFF" } };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.border = borderStyle;
+      });
+
+      inventory.forEach((item, idx) => {
+        const rowData = [item.id, dateVal, item.name, item.cat, item.unit || "Each", 0];
+
+        exportVillas.forEach(v => {
+          const qty = (localData[v] && localData[v].items && localData[v].items[item.id]) ? localData[v].items[item.id] : 0;
+          rowData.push(qty);
+        });
+
+        const row = sheet.addRow(rowData);
+        row.height = 20;
+        const isEven = idx % 2 === 0;
+
+        row.eachCell((cell, colNum) => {
+          cell.border = borderStyle;
+          cell.font = { name: "Inter", size: 9.5 };
+
+          const val = cell.value;
+          const isQtyCol = colNum >= 7;
+
+          if (isQtyCol && typeof val === 'number' && val > 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "BAE6FD" } };
+            cell.font = { name: "Inter", size: 9.5, bold: true, color: { argb: "0284C7" } };
+          } else if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "F8FAFC" } };
+          } else {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "FFFFFF" } };
+          }
+
+          cell.alignment = { horizontal: colNum >= 6 ? "center" : (colNum === 2 ? "center" : "left"), vertical: "middle" };
+        });
+      });
+
+      sheet.columns.forEach((col, idx) => {
+        if (idx === 1) col.width = 14;
+        else if (idx === 2) col.width = 30;
+        else if (idx === 3) col.width = 14;
+        else col.width = 9;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    }
+
+    // ===== DOWNLOAD XL =====
+    let isDownloading = false;
+
+    async function downloadXL() {
+      if (isDownloading) return;
+      isDownloading = true;
+      const btn = document.getElementById('downloadXlBtn');
+      const statusText = document.getElementById('xlStatusText');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" style="width:14px; animation:spin 0.8s linear infinite;"></i> Generating...';
+      statusText.textContent = '⏳ Generating Excel file...';
+      
+      try {
+        const blob = await generateExcelBlob();
+        const dateVal = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fileName = `Minibar_${currentZone}_Zone_${dateVal}.xlsx`;
+        saveAs(blob, fileName);
+        
+        statusText.textContent = '✅ Download completed!';
+        showToast(`📊 ${fileName} downloaded`, 'success');
+      } catch (err) {
+        statusText.textContent = '❌ Error generating file';
+        showToast('Failed to generate Excel file', 'error');
+        console.error(err);
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="download" style="width:14px;"></i> Download XL';
+      isDownloading = false;
+      
+      // Reset status after 3s
+      setTimeout(() => {
+        if (statusText.textContent.includes('completed') || statusText.textContent.includes('Error')) {
+          statusText.textContent = 'Ready to export';
+        }
+      }, 4000);
+    }
+
+    // ===== SHARE XL (without downloading) =====
+    async function shareXL() {
+      const btn = document.getElementById('shareXlBtn');
+      const statusText = document.getElementById('xlStatusText');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" style="width:14px; animation:spin 0.8s linear infinite;"></i> Preparing...';
+      statusText.textContent = '⏳ Preparing file for sharing...';
+      
+      try {
+        const blob = await generateExcelBlob();
+        const dateVal = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fileName = `Minibar_${currentZone}_Zone_${dateVal}.xlsx`;
+        const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        
+        // Try Web Share API first
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Minibar Report',
+            text: `Minibar consumption report for ${currentZone} Zone (${dateVal})`,
+            files: [file]
+          });
+          statusText.textContent = '✅ Shared successfully!';
+          showToast('📤 File shared!', 'success');
+        } else {
+          // Fallback: download
+          saveAs(blob, fileName);
+          statusText.textContent = '✅ Downloaded (share not available)';
+          showToast('📊 Downloaded (share not supported on this device)', 'warning');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          statusText.textContent = '❌ Share cancelled or failed';
+          showToast('Share cancelled or failed', 'error');
+          console.error(err);
+        } else {
+          statusText.textContent = '⏹️ Share cancelled';
+        }
+      }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="share-2" style="width:14px;"></i> Share XL';
+      
+      setTimeout(() => {
+        if (statusText.textContent.includes('completed') || statusText.textContent.includes('failed') || statusText.textContent.includes('cancelled')) {
+          statusText.textContent = 'Ready to export';
+        }
+      }, 4000);
+    }
+
+    // ===== IMPORT =====
     function openImportModal() {
       document.getElementById('importModalOverlay').classList.add('open');
       renderImportHistoryList();
+      document.getElementById('importXlStatus').textContent = 'Select a file and click import';
     }
     function closeImportModal() { document.getElementById('importModalOverlay').classList.remove('open'); }
 
@@ -663,11 +991,12 @@
 
     function importFromText() {
       const text = document.getElementById('importTextContent').value.trim();
-      if (!text) { alert("Please paste valid text data first."); return; }
+      if (!text) { showToast('Please paste valid text data first', 'warning'); return; }
 
       try {
         pushState();
         const lines = text.split('\n');
+        let importedCount = 0;
 
         lines.forEach(line => {
           if (!line.includes(':') && !line.match(/^\d+/)) return;
@@ -709,6 +1038,7 @@
                 );
                 if (invItem) {
                   localData[villaNum].items[invItem.id] = qty;
+                  importedCount++;
                 }
               }
             });
@@ -718,15 +1048,23 @@
         localStorage.setItem('minibar_entries', JSON.stringify(localData));
         renderGrid();
         closeImportModal();
-        alert(`Successfully imported text data!`);
+        showToast(`✅ Imported ${importedCount} items from text`, 'success');
       } catch (err) {
-        alert("Failed to parse text format.");
+        showToast('Failed to parse text format', 'error');
+        console.error(err);
       }
     }
 
     async function importFromExcelFile() {
       const fileInput = document.getElementById('importXLFileInput');
-      if (!fileInput.files[0]) { alert("Please select an Excel (.xlsx) file."); return; }
+      const statusText = document.getElementById('importXlStatus');
+      const btn = document.getElementById('importXlBtn');
+      
+      if (!fileInput.files[0]) { showToast('Please select an Excel file', 'warning'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" style="width:12px; animation:spin 0.8s linear infinite;"></i> Parsing...';
+      statusText.textContent = '⏳ Parsing Excel file...';
 
       try {
         pushState();
@@ -735,38 +1073,133 @@
         await workbook.xlsx.load(buffer);
         const sheet = workbook.worksheets[0];
 
-        const headerRow = sheet.getRow(4);
-        const villaCols = {};
-
-        headerRow.eachCell((cell, colNum) => {
-          if (colNum >= 7) villaCols[colNum] = cell.value.toString().trim();
-        });
+        // Find header row dynamically
+        let headerRowIdx = -1;
+        let roomColumns = {};
+        let itemIdCol = -1;
+        let itemNameCol = -1;
 
         sheet.eachRow((row, rowNum) => {
-          if (rowNum > 4) {
-            const itemId = row.getCell(1).value;
-            if (itemId && inventory.some(i => i.id == itemId)) {
-              Object.keys(villaCols).forEach(colNum => {
-                const villaNum = villaCols[colNum];
-                const qty = parseInt(row.getCell(colNum).value || 0);
-                if (qty > 0) {
-                  if (!localData[villaNum]) localData[villaNum] = { zone: currentZone, time: "Imported", items: {} };
-                  localData[villaNum].items[itemId] = qty;
+          if (headerRowIdx > 0) return;
+          
+          const firstCell = row.getCell(1).value;
+          const secondCell = row.getCell(2).value;
+          const thirdCell = row.getCell(3).value;
+          
+          // Look for "S.no" or "S.NO" or "ID" in col 1, "ARTICLE" or "Item" in col 3
+          const isHeader = (firstCell && firstCell.toString().toLowerCase().includes('s.no')) ||
+                           (firstCell && firstCell.toString().toLowerCase().includes('id')) ||
+                           (thirdCell && thirdCell.toString().toLowerCase().includes('article'));
+          
+          if (isHeader) {
+            headerRowIdx = rowNum;
+            // Find room columns (numeric headers starting from col 7 or later)
+            row.eachCell((cell, colNum) => {
+              if (colNum >= 6) {
+                const val = cell.value;
+                if (val && !isNaN(val) && val.toString().trim() !== '') {
+                  roomColumns[colNum] = val.toString().trim();
                 }
-              });
-            }
+              }
+            });
           }
         });
 
+        if (headerRowIdx === -1) {
+          // Fallback: try to find any row with numbers in columns >= 7
+          let found = false;
+          sheet.eachRow((row, rowNum) => {
+            if (found || rowNum > 10) return;
+            let hasRoomNums = false;
+            const roomNums = [];
+            row.eachCell((cell, colNum) => {
+              if (colNum >= 6) {
+                const val = cell.value;
+                if (val && !isNaN(val) && val.toString().trim() !== '') {
+                  roomNums.push(colNum);
+                  hasRoomNums = true;
+                }
+              }
+            });
+            if (hasRoomNums && roomNums.length > 1) {
+              headerRowIdx = rowNum;
+              row.eachCell((cell, colNum) => {
+                if (colNum >= 6) {
+                  const val = cell.value;
+                  if (val && !isNaN(val) && val.toString().trim() !== '') {
+                    roomColumns[colNum] = val.toString().trim();
+                  }
+                }
+              });
+              found = true;
+            }
+          });
+        }
+
+        if (Object.keys(roomColumns).length === 0) {
+          statusText.textContent = '❌ Could not find room columns in this file';
+          showToast('Could not detect room columns', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="upload" style="width:12px;"></i> Parse & Load Excel Sheet';
+          return;
+        }
+
+        let importedCount = 0;
+        let villaCount = 0;
+
+        sheet.eachRow((row, rowNum) => {
+          if (rowNum <= headerRowIdx) return;
+          
+          const itemId = row.getCell(1).value;
+          const itemName = row.getCell(3).value;
+          
+          // Check if this row is an inventory item
+          let matchedItem = null;
+          if (itemId) {
+            matchedItem = inventory.find(i => i.id == itemId);
+          }
+          if (!matchedItem && itemName) {
+            matchedItem = inventory.find(i => 
+              i.name.toLowerCase().includes(itemName.toString().toLowerCase()) ||
+              itemName.toString().toLowerCase().includes(i.name.toLowerCase())
+            );
+          }
+          
+          if (matchedItem) {
+            Object.keys(roomColumns).forEach(colNum => {
+              const villaNum = roomColumns[colNum];
+              const qty = parseInt(row.getCell(colNum).value || 0);
+              if (qty > 0) {
+                if (!localData[villaNum]) localData[villaNum] = { zone: currentZone, time: "Imported", items: {} };
+                if (!localData[villaNum].items[matchedItem.id]) {
+                  localData[villaNum].items[matchedItem.id] = 0;
+                }
+                localData[villaNum].items[matchedItem.id] += qty;
+                importedCount += qty;
+              }
+            });
+          }
+        });
+
+        villaCount = Object.keys(localData).length;
         localStorage.setItem('minibar_entries', JSON.stringify(localData));
         renderGrid();
         closeImportModal();
-        alert("Excel data successfully imported!");
+
+        statusText.textContent = `✅ Imported ${importedCount} items across ${villaCount} villas`;
+        showToast(`✅ Imported ${importedCount} items from ${villaCount} villas`, 'success');
       } catch (err) {
-        alert("Failed to parse Excel file format.");
+        statusText.textContent = '❌ Error parsing Excel file';
+        showToast('Failed to parse Excel: ' + err.message, 'error');
+        console.error(err);
       }
+      
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="upload" style="width:12px;"></i> Parse & Load Excel Sheet';
+      fileInput.value = '';
     }
 
+    // ===== HISTORY =====
     function renderImportHistoryList() {
       const container = document.getElementById('importHistoryListContainer');
       container.innerHTML = '';
@@ -838,9 +1271,76 @@
         closeHistoryModal();
         closeImportModal();
         renderGrid();
+        showToast(`✅ Restored shift from ${target.date}`, 'success');
       }
     }
 
+    // ===== SETTINGS - MERGE =====
+    async function mergeAndExportMasterXL() {
+      const beachFileInput = document.getElementById('uploadBeachFile');
+      const waterFileInput = document.getElementById('uploadWaterFile');
+      const statusText = document.getElementById('mergeStatusText');
+      const btn = document.getElementById('mergeMasterBtn');
+
+      if (!beachFileInput.files[0] || !waterFileInput.files[0]) {
+        showToast('Please select both Beach and Water files', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader" style="width:13px; animation:spin 0.8s linear infinite;"></i> Merging...';
+      statusText.textContent = '⏳ Merging files...';
+
+      try {
+        const masterWorkbook = new ExcelJS.Workbook();
+        let sheetsLoaded = 0;
+
+        const loadSheet = async (file, sheetName) => {
+          const buffer = await file.arrayBuffer();
+          const tempWb = new ExcelJS.Workbook();
+          await tempWb.xlsx.load(buffer);
+          const srcSheet = tempWb.worksheets[0];
+          const destSheet = masterWorkbook.addWorksheet(sheetName);
+
+          srcSheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+            const destRow = destSheet.getRow(rowNumber);
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+              const destCell = destRow.getCell(colNumber);
+              destCell.value = cell.value;
+              if (cell.style) destCell.style = JSON.parse(JSON.stringify(cell.style));
+            });
+            destRow.commit();
+          });
+          sheetsLoaded++;
+        };
+
+        await loadSheet(beachFileInput.files[0], 'Beach Zone');
+        await loadSheet(waterFileInput.files[0], 'Water Zone');
+
+        const buffer = await masterWorkbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const fileName = `Minibar_MASTER_Report_${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.xlsx`;
+        saveAs(blob, fileName);
+
+        statusText.textContent = `✅ Merged ${sheetsLoaded} sheets successfully!`;
+        showToast(`📊 Master XL downloaded (${sheetsLoaded} sheets)`, 'success');
+      } catch (err) {
+        statusText.textContent = '❌ Merge failed: ' + err.message;
+        showToast('Merge failed: ' + err.message, 'error');
+        console.error(err);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="combine" style="width:13px;"></i> Merge & Download Master XL';
+      
+      setTimeout(() => {
+        if (statusText.textContent.includes('failed') || statusText.textContent.includes('successfully')) {
+          statusText.textContent = 'Select both files above to merge';
+        }
+      }, 5000);
+    }
+
+    // ===== MODAL MODE =====
     function setModalMode(mode) {
       const card = document.getElementById('entryModalCard');
       const isSmall = mode === 'small';
@@ -863,6 +1363,7 @@
       localStorage.setItem('minibar_grid_cols', cols);
     }
 
+    // ===== ZONE SWITCH =====
     function switchZone(zone) {
       currentZone = zone;
       localStorage.setItem('minibar_active_zone', zone);
@@ -871,6 +1372,7 @@
       renderGrid();
     }
 
+    // ===== THEME =====
     function toggleTheme(isDark) {
       document.body.classList.toggle('dark-mode', isDark);
       document.body.classList.toggle('light-mode', !isDark);
@@ -878,6 +1380,7 @@
       localStorage.setItem('minibar_theme_dark', isDark);
     }
 
+    // ===== RENDER GRID =====
     function renderGrid() {
       const grid = document.getElementById('villaGrid');
       const list = currentZone === 'Beach' ? beachVillas : waterVillas;
@@ -907,6 +1410,7 @@
       });
     }
 
+    // ===== MODAL =====
     function openModal(v) {
       activeVilla = v;
       tempCounts = localData[v] ? { ...localData[v].items } : {};
@@ -927,13 +1431,22 @@
     function openSettingsModal() { document.getElementById('settingsModalOverlay').classList.add('open'); }
     function closeSettingsModal() { document.getElementById('settingsModalOverlay').classList.remove('open'); }
 
+    // ===== CATEGORY COLOR MAPPING =====
+    const catClassMap = {
+      'Food': 'cat-food',
+      'Soft Bev': 'cat-soft',
+      'Alc Bev': 'cat-alc',
+      'Snacks': 'cat-snack'
+    };
+
     function renderModalItems() {
       const container = document.getElementById('modalItemsContainer');
       container.innerHTML = '';
       inventory.forEach(item => {
         const qty = tempCounts[item.id] || 0;
+        const catClass = catClassMap[item.cat] || '';
         const card = document.createElement('div');
-        card.className = `item-card ${qty > 0 ? 'has-qty' : ''}`;
+        card.className = `item-card ${qty > 0 ? 'has-qty' : ''} ${catClass}`;
         card.innerHTML = `
           <div class="item-name">${item.name}</div>
           <div class="stepper">
@@ -976,136 +1489,10 @@
       localStorage.setItem('minibar_entries', JSON.stringify(localData));
       closeModal();
       renderGrid();
+      showToast(`✅ Villa ${activeVilla} saved (${totalQty} items)`, 'success');
     }
 
-    async function exportToExcel() {
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet(`${currentZone} Zone Matrix`);
-      const exportVillas = (currentZone === 'Beach' ? beachVillas : waterVillas).map(String);
-      const dateVal = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-      sheet.mergeCells(1, 1, 1, exportVillas.length + 6);
-      const titleCell = sheet.getCell(1, 1);
-      titleCell.value = `MINI BAR CONSUMPTION REPORT - ${currentZone.toUpperCase()} ZONE`;
-      titleCell.font = { name: "Inter", size: 14, bold: true, color: { argb: "FFFFFF" } };
-      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "0F172A" } };
-      titleCell.alignment = { horizontal: "center", vertical: "middle" };
-      sheet.getRow(1).height = 36;
-
-      sheet.mergeCells(2, 1, 2, exportVillas.length + 6);
-      const subCell = sheet.getCell(2, 1);
-      subCell.value = `Date: ${dateVal} | Generated on: ${new Date().toLocaleString()} | Active Zone: ${currentZone}`;
-      subCell.font = { name: "Inter", size: 9, italic: true, color: { argb: "64748B" } };
-      subCell.alignment = { horizontal: "center", vertical: "middle" };
-      sheet.getRow(2).height = 20;
-
-      sheet.addRow([]);
-
-      const headerValues = ["S.no", "Date", "ARTICLE", "Category", "UNIT", "Opening Room", ...exportVillas];
-      const headerRow = sheet.addRow(headerValues);
-      headerRow.height = 26;
-
-      const borderStyle = {
-        top: { style: 'thin', color: { argb: 'CBD5E1' } },
-        left: { style: 'thin', color: { argb: 'CBD5E1' } },
-        bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
-        right: { style: 'thin', color: { argb: 'CBD5E1' } }
-      };
-
-      headerRow.eachCell((cell) => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "1E293B" } };
-        cell.font = { name: "Inter", size: 10, bold: true, color: { argb: "FFFFFF" } };
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-        cell.border = borderStyle;
-      });
-
-      inventory.forEach((item, idx) => {
-        const rowData = [item.id, dateVal, item.name, item.cat, item.unit || "Each", 0];
-
-        exportVillas.forEach(v => {
-          const qty = (localData[v] && localData[v].items && localData[v].items[item.id]) ? localData[v].items[item.id] : 0;
-          rowData.push(qty);
-        });
-
-        const row = sheet.addRow(rowData);
-        row.height = 20;
-        const isEven = idx % 2 === 0;
-
-        row.eachCell((cell, colNum) => {
-          cell.border = borderStyle;
-          cell.font = { name: "Inter", size: 9.5 };
-
-          const val = cell.value;
-          const isQtyCol = colNum >= 7;
-
-          if (isQtyCol && typeof val === 'number' && val > 0) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "BAE6FD" } };
-            cell.font = { name: "Inter", size: 9.5, bold: true, color: { argb: "0284C7" } };
-          } else if (isEven) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "F8FAFC" } };
-          } else {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "FFFFFF" } };
-          }
-
-          cell.alignment = { horizontal: colNum >= 6 ? "center" : (colNum === 2 ? "center" : "left"), vertical: "middle" };
-        });
-      });
-
-      sheet.columns.forEach((col, idx) => {
-        if (idx === 1) col.width = 14;
-        else if (idx === 2) col.width = 30;
-        else if (idx === 3) col.width = 14;
-        else col.width = 9;
-      });
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const fileName = `Minibar_${currentZone}_Zone_${dateVal}.xlsx`;
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      saveAs(blob, fileName);
-    }
-
-    async function mergeAndExportMasterXL() {
-      const beachFileInput = document.getElementById('uploadBeachFile');
-      const waterFileInput = document.getElementById('uploadWaterFile');
-
-      if (!beachFileInput.files[0] || !waterFileInput.files[0]) {
-        alert("Please select both Beach Zone and Water Zone Excel files to merge.");
-        return;
-      }
-
-      try {
-        const masterWorkbook = new ExcelJS.Workbook();
-        const loadSheetIntoWorkbook = async (file, sheetName) => {
-          const buffer = await file.arrayBuffer();
-          const tempWb = new ExcelJS.Workbook();
-          await tempWb.xlsx.load(buffer);
-          
-          const srcSheet = tempWb.worksheets[0];
-          const destSheet = masterWorkbook.addWorksheet(sheetName);
-
-          srcSheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-            const destRow = destSheet.getRow(rowNumber);
-            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-              const destCell = destRow.getCell(colNumber);
-              destCell.value = cell.value;
-              destCell.style = JSON.parse(JSON.stringify(cell.style || {}));
-            });
-            destRow.commit();
-          });
-        };
-
-        await loadSheetIntoWorkbook(beachFileInput.files[0], 'Beach Zone');
-        await loadSheetIntoWorkbook(waterFileInput.files[0], 'Water Zone');
-
-        const buffer = await masterWorkbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        saveAs(blob, `Minibar_MASTER_Report.xlsx`);
-        alert("Master Excel merged downloaded successfully!");
-      } catch (err) {
-        alert("Failed to merge Excel files.");
-      }
-    }
-
+    // ===== INIT =====
     window.addEventListener('DOMContentLoaded', () => {
       const savedZone = localStorage.getItem('minibar_active_zone') || 'Beach';
       switchZone(savedZone);
@@ -1126,6 +1513,11 @@
       renderGrid();
       updateUndoRedoUI();
       lucide.createIcons();
+      
+      // Add spin animation
+      const style = document.createElement('style');
+      style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+      document.head.appendChild(style);
     });
   </script>
 </body>
