@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark-mode">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Minibar Touch System - Professional Edition</title>
+
+  <!-- ===== PWA META TAGS (ADDED) ===== -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <style>
+    /* ============================================
+    FULL HEIGHT IFRAME FILL - UPDATED
+    ============================================ */
+    html, body { 
+      background: var(--bg); color: var(--text); margin: 0; padding: 0; 
+      font-size: 0.85rem; width: 100%; height: 100%; 
+      height: 100dvh;
+      overflow: auto; 
+      overscroll-behavior: none;
+      -webkit-user-select: none; user-select: none;
+    }
+
+    :root {
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --success-bg: #052e16;
+      --success-border: #15803d;
+      
+      --grid-cols: 6;
+      --ui-scale: 0.95;
+      --modal-grid-cols: 2;
+      --item-card-padding: 6px 8px;
+      --item-font-size: 0.75rem;
+      --btn-step-size: 20px;
+      --btn-step-font: 0.8rem;
+      --step-val-width: 16px;
+    }
+
+    body.light-mode {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --card-border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --success: #10b981;
+      --success-bg: #dcfce7;
+      --success-border: #16a34a;
+    }
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    .btn-cool {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      gap: 4px; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      user-select: none; -webkit-touch-callout: none;
+    }
+    .btn-cool:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+    .btn-cool:active { transform: translateY(0); opacity: 0.8; }
+    .btn-cool:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--border); color: var(--muted); transform: none; }
+
+    .btn-primary-cool { background: var(--primary); color: #0f172a; border: none; font-weight: 700; }
+    .btn-primary-cool:hover { background: var(--primary-hover); color: #ffffff; }
+
+    .btn-success-cool { background: #16a34a; color: white; border: none; font-weight: 700; }
+    .btn-success-cool:hover { background: #15803d; }
+
+    .btn-danger-cool { background: #dc2626; color: white; border: none; font-weight: 700; }
+    .btn-danger-cool:hover { background: #b91c1c; }
+
+    .top-header {
+      background: var(--card); padding: 6px 10px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center;
+      height: 44px; padding-top: max(6px, env(safe-area-inset-top));
+    }
+    .brand { font-weight: 700; font-size: 0.9rem; color: var(--primary); display: flex; align-items: center; gap: 5px; }
+    .header-controls { display: flex; align-items: center; gap: 4px; }
+    .zone-toggle { display: flex; background: var(--bg); padding: 2px; border-radius: 6px; border: 1px solid var(--border); }
+    
+    .toggle-btn {
+      padding: 3px 8px; border: none; background: none; border-radius: 4px;
+      font-size: 0.72rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.15s ease;
+    }
+    .toggle-btn.active { background: var(--primary); color: #0f172a; font-weight: 700; }
+
+    .btn-icon-setting {
+      background: var(--card); border: 1px solid var(--border); width: 28px; height: 28px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text); transition: all 0.15s ease;
+    }
+    .btn-icon-setting:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-icon-setting:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .viewport {
+      width: 100%; height: calc(100dvh - 44px); overflow-y: auto; overflow-x: hidden;
+      background: var(--bg); padding: 8px 8px 20px 8px; box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+    }
+    .main-container { width: 100%; max-width: 650px; margin: 0 auto; box-sizing: border-box; }
+
+    .control-toolbar { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; align-items: center; }
+    .search-box { flex: 1; position: relative; min-width: 120px; }
+    .search-box input {
+      width: 100%; padding: 4px 6px 4px 28px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 0.78rem; outline: none; background: var(--card); color: var(--text);
+      -webkit-appearance: none;
+    }
+    .search-box i { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 13px; }
+
+    .section-title { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 6px 0 4px 0; }
+    
+    .villa-grid {
+      display: grid; grid-template-columns: repeat(var(--grid-cols), 1fr);
+      gap: 5px; width: 100%; box-sizing: border-box;
+    }
+    
+    .villa-tile {
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      height: calc(34px + (9 - var(--grid-cols)) * 3px); 
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: calc(0.65rem + (9 - var(--grid-cols)) * 0.05rem); 
+      cursor: pointer; position: relative; user-select: none; color: var(--text); width: 100%;
+      transition: all 0.12s ease; -webkit-tap-highlight-color: transparent;
+    }
+    .villa-tile:hover { border-color: var(--primary); }
+    .villa-tile.done { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+    .villa-tile .count-badge {
+      position: absolute; top: -3px; right: -3px; background: var(--success); color: #0f172a;
+      font-size: 0.58rem; padding: 1px 4px; border-radius: 8px; font-weight: bold;
+    }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      z-index: 100; display: flex; justify-content: center; align-items: flex-end;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+      padding-top: env(safe-area-inset-top, 16px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal-card-dynamic {
+      background: var(--card); width: 100vw; 
+      height: calc(100dvh - 16px); max-height: 100dvh;
+      display: flex; flex-direction: column; overflow: hidden;
+      border-top-left-radius: 12px; border-top-right-radius: 12px;
+      transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s ease, width 0.2s ease;
+      margin-top: auto;
+    }
+    .modal-card-dynamic.is-small {
+      width: 100%; max-width: 620px; height: 80dvh;
+      border-top-left-radius: 14px; border-top-right-radius: 14px;
+      border: 1px solid var(--border); margin: 0 auto;
+    }
+    .modal-overlay.open .modal-card-dynamic { transform: translateY(0); }
+
+    .modal-header {
+      padding: 6px 10px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; background: var(--card);
+      height: 40px; flex-shrink: 0;
+    }
+    .modal-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    
+    .header-action-group { display: flex; align-items: center; gap: 6px; }
+    
+    .view-mode-pill {
+      display: flex; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px; gap: 2px;
+    }
+    .view-pill-btn {
+      border: none; background: transparent; color: var(--muted);
+      font-size: 0.65rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+      cursor: pointer; display: flex; align-items: center; gap: 3px;
+    }
+    .view-pill-btn.active { background: var(--primary); color: #0f172a; font-weight: 700; }
+
+    .btn-action-icon {
+      background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      width: 24px; height: 24px; border-radius: 5px; font-weight: bold;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
+    }
+    .btn-action-icon:hover { border-color: var(--primary); }
+
+    .modal-body { 
+      padding: 6px; overflow-y: auto; flex: 1; 
+      display: grid; grid-template-columns: repeat(var(--modal-grid-cols), 1fr); 
+      gap: 5px; align-content: start; -webkit-overflow-scrolling: touch;
+      transform: scale(var(--ui-scale)); transform-origin: top center;
+    }
+
+    .item-card {
+      background: var(--bg); border-radius: 6px; border: 1px solid var(--border);
+      padding: var(--item-card-padding); display: flex; flex-direction: column;
+      justify-content: space-between; gap: 4px; min-width: 0; width: 100%;
+    }
+    .item-card.has-qty { border-color: var(--primary); background: #0284c71a; }
+    
+    .item-name { 
+      font-weight: 600; font-size: var(--item-font-size); color: var(--text); line-height: 1.15; 
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+      overflow: hidden; word-break: break-word; min-height: 2.3em;
+    }
+
+    .stepper { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .btn-step {
+      width: var(--btn-step-size); height: var(--btn-step-size); border-radius: 4px; 
+      border: 1px solid var(--border); background: var(--card); color: var(--text); 
+      font-size: var(--btn-step-font); font-weight: bold; display: flex;
+      align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+      transition: all 0.1s ease; touch-action: manipulation;
+    }
+    .btn-step:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-step:active { transform: scale(0.9); }
+    .step-val { font-size: var(--item-font-size); font-weight: 700; width: var(--step-val-width); text-align: center; flex-shrink: 0; }
+
+    .modal-footer { padding: 6px 10px; border-top: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+
+    .setting-card-standard {
+      background: var(--card); width: 100%; max-width: 500px; max-height: 85dvh;
+      border-top-left-radius: 12px; border-top-right-radius: 12px;
+      display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);
+    }
+
+    .tab-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .tab-btn {
+      padding: 4px 8px; background: none; border: none; color: var(--muted);
+      font-size: 0.75rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+
+    textarea.code-area {
+      width: 100%; height: 160px; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px; padding: 8px;
+      font-family: monospace; font-size: 0.75rem; resize: vertical; outline: none; line-height: 1.4;
+      -webkit-appearance: none;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+
+  <header class="top-header">
+    <div class="brand"><i data-lucide="wine" style="width:15px;"></i> Minibar</div>
+    <div class="header-controls">
+      <div class="zone-toggle">
+        <button class="toggle-btn active" id="btnBeach" onclick="switchZone('Beach')">Beach</button>
+        <button class="toggle-btn" id="btnWater" onclick="switchZone('Water')">Water</button>
+      </div>
+      <button class="btn-icon-setting" id="btnUndo" onclick="undo()" title="Undo" disabled>
+        <i data-lucide="undo-2" style="width:14px;"></i>
+      </button>
+      <button class="btn-icon-setting" id="btnRedo" onclick="redo()" title="Redo" disabled>
+        <i data-lucide="redo-2" style="width:14px;"></i>
+      </button>
+      <button class="btn-icon-setting" onclick="openHistoryModal()" title="History">
+        <i data-lucide="history" style="width:14px;"></i>
+      </button>
+      <button class="btn-icon-setting" onclick="openSettingsModal()" title="Settings">
+        <i data-lucide="settings" style="width:14px;"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="viewport">
+    <div class="main-container">
+      <div class="control-toolbar">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="number" id="roomSearch" placeholder="Filter room..." oninput="renderGrid()">
+        </div>
+        <button class="btn-cool btn-danger-cool" onclick="cleanActiveWorkspace()" title="Clear Active Grid">
+          <i data-lucide="rotate-ccw" style="width:12px;"></i> Clean
+        </button>
+        <button class="btn-cool btn-cool" onclick="openImportModal()" title="Import via Text, XL or History">
+          <i data-lucide="download" style="width:12px;"></i> Import
+        </button>
+        <button class="btn-cool btn-success-cool" onclick="openExportModal()" title="Export & Share">
+          <i data-lucide="share-2" style="width:12px;"></i> Share / XL
+        </button>
+        <button class="btn-cool btn-primary-cool" onclick="finishDayAutoSave()" title="Finish & Archive Shift">
+          <i data-lucide="check-circle-2" style="width:12px;"></i> Finish Day
+        </button>
+      </div>
+
+      <div class="section-title" id="gridTitle">Select Villa</div>
+      <div class="villa-grid" id="villaGrid"></div>
+    </div>
+  </div>
+
+  <!-- ENTRY POPUP MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card-dynamic" id="entryModalCard">
+      <div class="modal-header">
+        <div class="modal-title" id="modalVillaTitle">Villa Entry</div>
+        <div class="header-action-group">
+          <div class="view-mode-pill">
+            <button class="view-pill-btn" id="pillSheetBtn" onclick="setModalMode('small')">
+              <i data-lucide="minimize-2" style="width:11px;"></i> Sheet
+            </button>
+            <button class="view-pill-btn" id="pillFullBtn" onclick="setModalMode('full')">
+              <i data-lucide="maximize-2" style="width:11px;"></i> Full
+            </button>
+          </div>
+          <button class="btn-action-icon" onclick="closeModal()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalItemsContainer"></div>
+      <div class="modal-footer">
+        <button class="btn-cool btn-primary-cool" style="width:100%; padding: 6px;" onclick="saveLocally()">
+          <i data-lucide="check" style="width:14px;"></i> Save Local Entry
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-CHANNEL EXPORT & SHARE MODAL -->
+  <div class="modal-overlay" id="exportModalOverlay">
+    <div class="setting-card-standard">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="share-2" style="width:14px; margin-right:4px;"></i> Export & Share Data</div>
+        <button class="btn-action-icon" onclick="closeExportModal()">✕</button>
+      </div>
+      <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+        <div class="tab-nav">
+          <button class="tab-btn active" id="tabExportTextBtn" onclick="switchExportTab('text')">Share as Simple Text</button>
+          <button class="tab-btn" id="tabExportXLBtn" onclick="switchExportTab('xl')">Download Excel (.xlsx)</button>
+        </div>
+
+        <div id="exportTextView">
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:6px;">Easy 1-line per room format (Ideal for messaging/chat):</div>
+          <textarea id="exportTextContent" class="code-area" readonly></textarea>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <button class="btn-cool btn-primary-cool" style="flex:1;" onclick="copyExportText()">
+              <i data-lucide="copy" style="width:12px;"></i> Copy Simple Text
+            </button>
+          </div>
+        </div>
+
+        <div id="exportXLView" style="display:none;">
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:10px;">Generate standard styled workbook for <b><span class="activeZoneLabel">Beach</span> Zone</b>:</div>
+          <button class="btn-cool btn-success-cool" style="width:100%; padding:8px;" onclick="exportToExcel()">
+            <i data-lucide="file-spreadsheet" style="width:14px;"></i> Download <span class="activeZoneLabel">Beach</span> Zone XL
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIVERSAL IMPORT MODAL -->
+  <div class="modal-overlay" id="importModalOverlay">
+    <div class="setting-card-standard">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="download" style="width:14px; margin-right:4px;"></i> Universal Import</div>
+        <button class="btn-action-icon" onclick="closeImportModal()">✕</button>
+      </div>
+      <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+        <div class="tab-nav">
+          <button class="tab-btn active" id="tabImpTextBtn" onclick="switchImportTab('text')">Paste Text</button>
+          <button class="tab-btn" id="tabImpXLBtn" onclick="switchImportTab('xl')">Upload XL</button>
+          <button class="tab-btn" id="tabImpHistBtn" onclick="switchImportTab('history')">From History</button>
+        </div>
+
+        <div id="importTextView">
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:4px;">Paste quick room data (e.g. 101: Coke=2, Sprite=1):</div>
+          <textarea id="importTextContent" class="code-area" placeholder="Example format:&#10;101: Coke=2, Sprite=1&#10;102: Beer=4"></textarea>
+          <button class="btn-cool btn-primary-cool" style="width:100%; margin-top:8px; padding:6px;" onclick="importFromText()">
+            <i data-lucide="check-check" style="width:12px;"></i> Process & Load Text Data
+          </button>
+        </div>
+
+        <div id="importXLView" style="display:none;">
+          <div style="font-size:0.72rem; color:var(--muted); margin-bottom:8px;">Select an exported Excel sheet (.xlsx) to parse:</div>
+          <input type="file" id="importXLFileInput" accept=".xlsx" style="font-size:0.75rem; color:var(--muted); width:100%; margin-bottom:10px;">
+          <button class="btn-cool btn-success-cool" style="width:100%; padding:6px;" onclick="importFromExcelFile()">
+            <i data-lucide="upload" style="width:12px;"></i> Parse & Load Excel Sheet
+          </button>
+        </div>
+
+        <div id="importHistoryView" style="display:none;">
+          <div id="importHistoryListContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY MODAL -->
+  <div class="modal-overlay" id="historyModalOverlay">
+    <div class="setting-card-standard">
+      <div class="modal-header">
+        <div class="modal-title">Saved Shift History</div>
+        <button class="btn-action-icon" onclick="closeHistoryModal()">✕</button>
+      </div>
+      <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;" id="historyListContainer"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModalOverlay">
+    <div class="setting-card-standard">
+      <div class="modal-header">
+        <div class="modal-title"><i data-lucide="sliders" style="width:15px; margin-right:4px;"></i> Settings</div>
+        <button class="btn-action-icon" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div style="padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+        
+        <div class="settings-section-card" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:8px;">
+            <i data-lucide="file-spreadsheet" style="width:13px;"></i> Excel Master Utilities
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; font-size:0.75rem;">
+            <div>
+              <label style="font-weight:600; display:block; margin-bottom:2px;">Beach Zone File (.xlsx):</label>
+              <input type="file" id="uploadBeachFile" accept=".xlsx" style="font-size:0.72rem; color:var(--muted);">
+            </div>
+            <div>
+              <label style="font-weight:600; display:block; margin-bottom:2px;">Water Zone File (.xlsx):</label>
+              <input type="file" id="uploadWaterFile" accept=".xlsx" style="font-size:0.72rem; color:var(--muted);">
+            </div>
+            <button class="btn-cool btn-primary-cool" style="padding:6px; margin-top:4px;" onclick="mergeAndExportMasterXL()">
+              <i data-lucide="combine" style="width:13px;"></i> Merge & Download Master XL
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-section-card" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:8px;">
+            <i data-lucide="layout-grid" style="width:13px;"></i> Display & Grid Layout
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:600; font-size:0.78rem;">Entry Scale</span>
+              <span style="font-size:0.68rem; color:var(--muted);">Overall entry popup scale</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="range" id="uiScaleSlider" min="0.70" max="1.15" value="0.95" step="0.05" oninput="onUIScaleChange(this.value)">
+              <span style="font-weight:700; font-size:0.72rem; min-width:35px; text-align:right;" id="uiScaleVal">95%</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:600; font-size:0.78rem;">Room Columns</span>
+              <span style="font-size:0.68rem; color:var(--muted);">Main grid column count</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <input type="range" id="mainZoomSlider" min="4" max="8" value="6" step="1" oninput="onMainGridZoomChange(this.value)">
+              <span style="font-weight:700; font-size:0.72rem; min-width:35px; text-align:right;" id="mainZoomVal">6 Cols</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section-card" style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 10px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:8px;">
+            <i data-lucide="sun-moon" style="width:13px;"></i> Preferences & Theme
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span style="font-weight:600; font-size:0.78rem;" id="themeTextLabel">Dark Mode</span>
+              <span style="font-size:0.68rem; color:var(--muted);">Switch application theme</span>
+            </div>
+            <input type="checkbox" id="themeToggleCheckbox" checked onchange="toggleTheme(this.checked)" style="width: 16px; height: 16px; accent-color: var(--primary);">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const beachVillas = [101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307];
+    const waterVillas = [401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,602,603,604,605,606];
+
+    const inventory = [
+      { id: 1, name: "MB Salted Peanuts -50Grm", cat: "Food", unit: "Each" },
+      { id: 2, name: "MB Potato Crisps -45Grm", cat: "Food", unit: "Each" },
+      { id: 3, name: "MB Baked Beetroots Crips -50Grm", cat: "Food", unit: "Each" },
+      { id: 4, name: "MB Cashew Salted -50Grm", cat: "Food", unit: "Each" },
+      { id: 5, name: "MB Roasted Salted Pistachios", cat: "Food", unit: "Each" },
+      { id: 6, name: "Softdrink Coca Cola 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 7, name: "Softdrink Sprite 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 8, name: "Softdrink Diet Coke 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 9, name: "Softdrink Zero Coke 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 10, name: "Softdrink Tonic Water 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 11, name: "Softdrink Soda Water 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 12, name: "Softdrink Ginger Ale 330Ml", cat: "Soft Bev", unit: "Each" },
+      { id: 13, name: "Royal Dutch - 330ml", cat: "Alc Bev", unit: "Each" },
+      { id: 14, name: "Beer pilsner extra smooth 330ml", cat: "Alc Bev", unit: "Each" },
+      { id: 15, name: "Beer Lion Can - 330ml", cat: "Alc Bev", unit: "Each" },
+      { id: 16, name: "333 Triple can beer - 330ml", cat: "Alc Bev", unit: "Each" },
+      { id: 17, name: "MB GRANI MIX FIT", cat: "Snacks", unit: "Each" },
+      { id: 18, name: "MB GRANI ORGNG", cat: "Snacks", unit: "Each" },
+      { id: 19, name: "MB GRANI APPLE", cat: "Snacks", unit: "Each" }
+    ];
+
+    let currentZone = localStorage.getItem('minibar_active_zone') || 'Beach';
+    let activeVilla = null;
+    let tempCounts = {};
+
+    let localData = JSON.parse(localStorage.getItem('minibar_entries') || '{}');
+    let shiftHistory = JSON.parse(localStorage.getItem('minibar_history') || '[]');
+    let undoStack = [];
+    let redoStack = [];
+
+    function pushState() {
+      undoStack.push(JSON.stringify(localData));
+      redoStack = [];
+      updateUndoRedoUI();
+    }
+
+    function undo() {
+      if (undoStack.length === 0) return;
+      redoStack.push(JSON.stringify(localData));
+      localData = JSON.parse(undoStack.pop());
+      localStorage.setItem('minibar_entries', JSON.stringify(localData));
+      renderGrid();
+      updateUndoRedoUI();
+    }
+
+    function redo() {
+      if (redoStack.length === 0) return;
+      undoStack.push(JSON.stringify(localData));
+      localData = JSON.parse(redoStack.pop());
+      localStorage.setItem('minibar_entries', JSON.stringify(localData));
+      renderGrid();
+      updateUndoRedoUI();
+    }
+
+    function updateUndoRedoUI() {
+      document.getElementById('btnUndo').disabled = undoStack.length === 0;
+      document.getElementById('btnRedo').disabled = redoStack.length === 0;
+    }
+
+    function cleanActiveWorkspace() {
+      if (Object.keys(localData).length === 0) return;
+      if (confirm("Are you sure you want to clear the active grid?")) {
+        pushState();
+        localData = {};
+        localStorage.setItem('minibar_entries', JSON.stringify(localData));
+        renderGrid();
+      }
+    }
+
+    function finishDayAutoSave() {
+      const entryCount = Object.keys(localData).length;
+      if (entryCount === 0) {
+        alert("No entries to finish for today!");
+        return;
+      }
+
+      if (confirm(`Finish day and archive ${entryCount} room entries to History?`)) {
+        pushState();
+        const record = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString(),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          data: { ...localData }
+        };
+
+        shiftHistory.unshift(record);
+        localStorage.setItem('minibar_history', JSON.stringify(shiftHistory));
+
+        localData = {};
+        localStorage.setItem('minibar_entries', JSON.stringify(localData));
+        renderGrid();
+        alert("Shift completed and archived to History successfully!");
+      }
+    }
+
+    function openExportModal() {
+      document.querySelectorAll('.activeZoneLabel').forEach(el => el.innerText = currentZone);
+      generateExportText();
+      document.getElementById('exportModalOverlay').classList.add('open');
+    }
+    function closeExportModal() { document.getElementById('exportModalOverlay').classList.remove('open'); }
+
+    function switchExportTab(tab) {
+      document.getElementById('tabExportTextBtn').classList.toggle('active', tab === 'text');
+      document.getElementById('tabExportXLBtn').classList.toggle('active', tab === 'xl');
+      document.getElementById('exportTextView').style.display = tab === 'text' ? 'block' : 'none';
+      document.getElementById('exportXLView').style.display = tab === 'xl' ? 'block' : 'none';
+    }
+
+    function generateExportText() {
+      const activeVillas = Object.keys(localData);
+      if (activeVillas.length === 0) {
+        document.getElementById('exportTextContent').value = "No entries recorded yet.";
+        return;
+      }
+
+      let textOutput = `--- MINIBAR REPORT (${currentZone.toUpperCase()}) ---\n`;
+      activeVillas.forEach(v => {
+        const itemObj = localData[v].items;
+        const itemStrings = [];
+        
+        Object.keys(itemObj).forEach(itemId => {
+          const item = inventory.find(i => i.id == itemId);
+          if (item) {
+            let shortName = item.name.replace(/Softdrink |MB | - \d+ml|-50Grm|-45Grm| 330Ml/g, '').trim();
+            itemStrings.push(`${shortName}=${itemObj[itemId]}`);
+          }
+        });
+        
+        if (itemStrings.length > 0) {
+          textOutput += `${v}: ${itemStrings.join(', ')}\n`;
+        }
+      });
+
+      document.getElementById('exportTextContent').value = textOutput.trim();
+    }
+
+    function copyExportText() {
+      const area = document.getElementById('exportTextContent');
+      area.select();
+      area.setSelectionRange(0, 99999);
+      try {
+        navigator.clipboard.writeText(area.value).then(() => {
+          alert("Formatted simple text copied to clipboard!");
+        }).catch(() => {
+          document.execCommand('copy');
+          alert("Formatted simple text copied to clipboard!");
+        });
+      } catch(e) {
+        document.execCommand('copy');
+        alert("Formatted simple text copied to clipboard!");
+      }
+    }
+
+    function openImportModal() {
+      document.getElementById('importModalOverlay').classList.add('open');
+      renderImportHistoryList();
+    }
+    function closeImportModal() { document.getElementById('importModalOverlay').classList.remove('open'); }
+
+    function switchImportTab(tab) {
+      document.getElementById('tabImpTextBtn').classList.toggle('active', tab === 'text');
+      document.getElementById('tabImpXLBtn').classList.toggle('active', tab === 'xl');
+      document.getElementById('tabImpHistBtn').classList.toggle('active', tab === 'history');
+
+      document.getElementById('importTextView').style.display = tab === 'text' ? 'block' : 'none';
+      document.getElementById('importXLView').style.display = tab === 'xl' ? 'block' : 'none';
+      document.getElementById('importHistoryView').style.display = tab === 'history' ? 'block' : 'none';
+    }
+
+    function importFromText() {
+      const text = document.getElementById('importTextContent').value.trim();
+      if (!text) { alert("Please paste valid text data first."); return; }
+
+      try {
+        pushState();
+        const lines = text.split('\n');
+
+        lines.forEach(line => {
+          if (!line.includes(':') && !line.match(/^\d+/)) return;
+          
+          let villaNum = null;
+          let itemsPart = line;
+
+          if (line.includes(':')) {
+            const parts = line.split(':');
+            villaNum = parts[0].replace(/\D/g, '').trim();
+            itemsPart = parts[1];
+          } else {
+            const match = line.match(/^(\d+)\s+(.*)/);
+            if (match) {
+              villaNum = match[1];
+              itemsPart = match[2];
+            }
+          }
+
+          if (villaNum && itemsPart) {
+            if (!localData[villaNum]) localData[villaNum] = { zone: currentZone, time: "Imported", items: {} };
+
+            const entries = itemsPart.split(',');
+            entries.forEach(entry => {
+              let itemName = "", qty = 0;
+              if (entry.includes('=')) {
+                const pair = entry.split('=');
+                itemName = pair[0].trim().toLowerCase();
+                qty = parseInt(pair[1].trim());
+              } else if (entry.includes('-')) {
+                const pair = entry.split('-');
+                itemName = pair[0].trim().toLowerCase();
+                qty = parseInt(pair[1].trim());
+              }
+
+              if (itemName && !isNaN(qty) && qty > 0) {
+                const invItem = inventory.find(i => 
+                  i.name.toLowerCase().includes(itemName) || itemName.includes(i.name.toLowerCase())
+                );
+                if (invItem) {
+                  localData[villaNum].items[invItem.id] = qty;
+                }
+              }
+            });
+          }
+        });
+
+        localStorage.setItem('minibar_entries', JSON.stringify(localData));
+        renderGrid();
+        closeImportModal();
+        alert(`Successfully imported text data!`);
+      } catch (err) {
+        alert("Failed to parse text format.");
+      }
+    }
+
+    async function importFromExcelFile() {
+      const fileInput = document.getElementById('importXLFileInput');
+      if (!fileInput.files[0]) { alert("Please select an Excel (.xlsx) file."); return; }
+
+      try {
+        pushState();
+        const buffer = await fileInput.files[0].arrayBuffer();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+        const sheet = workbook.worksheets[0];
+
+        const headerRow = sheet.getRow(4);
+        const villaCols = {};
+
+        headerRow.eachCell((cell, colNum) => {
+          if (colNum >= 7) villaCols[colNum] = cell.value.toString().trim();
+        });
+
+        sheet.eachRow((row, rowNum) => {
+          if (rowNum > 4) {
+            const itemId = row.getCell(1).value;
+            if (itemId && inventory.some(i => i.id == itemId)) {
+              Object.keys(villaCols).forEach(colNum => {
+                const villaNum = villaCols[colNum];
+                const qty = parseInt(row.getCell(colNum).value || 0);
+                if (qty > 0) {
+                  if (!localData[villaNum]) localData[villaNum] = { zone: currentZone, time: "Imported", items: {} };
+                  localData[villaNum].items[itemId] = qty;
+                }
+              });
+            }
+          }
+        });
+
+        localStorage.setItem('minibar_entries', JSON.stringify(localData));
+        renderGrid();
+        closeImportModal();
+        alert("Excel data successfully imported!");
+      } catch (err) {
+        alert("Failed to parse Excel file format.");
+      }
+    }
+
+    function renderImportHistoryList() {
+      const container = document.getElementById('importHistoryListContainer');
+      container.innerHTML = '';
+
+      if (shiftHistory.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 15px; color: var(--muted); font-size:0.75rem;">No saved history logs available.</div>`;
+        return;
+      }
+
+      shiftHistory.forEach((item, index) => {
+        const villaKeys = Object.keys(item.data);
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--card); border:1px solid var(--border); border-radius:6px; padding:6px 8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;';
+        card.innerHTML = `
+          <div>
+            <div style="font-weight:700; font-size:0.78rem;">Shift #${shiftHistory.length - index} — ${item.date} (${item.time})</div>
+            <div style="font-size:0.68rem; color:var(--muted);">${villaKeys.length} Villas Recorded</div>
+          </div>
+          <button class="btn-cool btn-primary-cool" onclick="restoreHistoryItem(${item.id})">
+            <i data-lucide="download" style="width:11px;"></i> Load
+          </button>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function openHistoryModal() {
+      renderHistoryList();
+      document.getElementById('historyModalOverlay').classList.add('open');
+    }
+    function closeHistoryModal() { document.getElementById('historyModalOverlay').classList.remove('open'); }
+
+    function renderHistoryList() {
+      const container = document.getElementById('historyListContainer');
+      container.innerHTML = '';
+
+      if (shiftHistory.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--muted);">No archived history available.</div>`;
+        return;
+      }
+
+      shiftHistory.forEach((item, index) => {
+        const villaKeys = Object.keys(item.data);
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;';
+        card.innerHTML = `
+          <div>
+            <div style="font-weight:700; font-size:0.8rem;">Shift #${shiftHistory.length - index} — ${item.date} (${item.time})</div>
+            <div style="font-size:0.7rem; color:var(--muted);">${villaKeys.length} Villas Recorded</div>
+          </div>
+          <button class="btn-cool btn-primary-cool" onclick="restoreHistoryItem(${item.id})">
+            <i data-lucide="rotate-ccw" style="width:12px;"></i> Load
+          </button>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function restoreHistoryItem(id) {
+      const target = shiftHistory.find(h => h.id === id);
+      if (!target) return;
+
+      if (confirm(`Restore shift entries from ${target.date} (${target.time}) into active grid?`)) {
+        pushState();
+        localData = JSON.parse(JSON.stringify(target.data));
+        localStorage.setItem('minibar_entries', JSON.stringify(localData));
+        closeHistoryModal();
+        closeImportModal();
+        renderGrid();
+      }
+    }
+
+    function setModalMode(mode) {
+      const card = document.getElementById('entryModalCard');
+      const isSmall = mode === 'small';
+      card.classList.toggle('is-small', isSmall);
+      
+      document.getElementById('pillSheetBtn').classList.toggle('active', isSmall);
+      document.getElementById('pillFullBtn').classList.toggle('active', !isSmall);
+      localStorage.setItem('minibar_modal_is_small', isSmall);
+    }
+
+    function onUIScaleChange(val) {
+      document.documentElement.style.setProperty('--ui-scale', val);
+      document.getElementById('uiScaleVal').innerText = `${Math.round(val * 100)}%`;
+      localStorage.setItem('minibar_ui_scale', val);
+    }
+
+    function onMainGridZoomChange(cols) {
+      document.documentElement.style.setProperty('--grid-cols', cols);
+      document.getElementById('mainZoomVal').innerText = `${cols} Cols`;
+      localStorage.setItem('minibar_grid_cols', cols);
+    }
+
+    function switchZone(zone) {
+      currentZone = zone;
+      localStorage.setItem('minibar_active_zone', zone);
+      document.getElementById('btnBeach').classList.toggle('active', zone === 'Beach');
+      document.getElementById('btnWater').classList.toggle('active', zone === 'Water');
+      renderGrid();
+    }
+
+    function toggleTheme(isDark) {
+      document.body.classList.toggle('dark-mode', isDark);
+      document.body.classList.toggle('light-mode', !isDark);
+      document.getElementById('themeTextLabel').innerText = isDark ? "Dark Mode" : "Light Mode";
+      localStorage.setItem('minibar_theme_dark', isDark);
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('villaGrid');
+      const list = currentZone === 'Beach' ? beachVillas : waterVillas;
+      const filter = document.getElementById('roomSearch').value;
+      grid.innerHTML = '';
+      document.getElementById('gridTitle').innerText = `${currentZone} Zone (${list.length})`;
+
+      list.forEach(v => {
+        if (!filter || v.toString().includes(filter)) {
+          const entry = localData[v];
+          const isDone = !!entry;
+          const tile = document.createElement('div');
+          tile.className = `villa-tile ${isDone ? 'done' : ''}`;
+          tile.innerText = v;
+
+          if (isDone) {
+            const totalQty = Object.values(entry.items).reduce((a, b) => a + b, 0);
+            const badge = document.createElement('span');
+            badge.className = 'count-badge';
+            badge.innerText = totalQty;
+            tile.appendChild(badge);
+          }
+
+          tile.onclick = () => openModal(v);
+          grid.appendChild(tile);
+        }
+      });
+    }
+
+    function openModal(v) {
+      activeVilla = v;
+      tempCounts = localData[v] ? { ...localData[v].items } : {};
+      document.getElementById('modalVillaTitle').innerText = `Villa ${v} (${currentZone})`;
+      
+      const isSmallPref = localStorage.getItem('minibar_modal_is_small') === 'true';
+      setModalMode(isSmallPref ? 'small' : 'full');
+
+      renderModalItems();
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      activeVilla = null;
+    }
+
+    function openSettingsModal() { document.getElementById('settingsModalOverlay').classList.add('open'); }
+    function closeSettingsModal() { document.getElementById('settingsModalOverlay').classList.remove('open'); }
+
+    function renderModalItems() {
+      const container = document.getElementById('modalItemsContainer');
+      container.innerHTML = '';
+      inventory.forEach(item => {
+        const qty = tempCounts[item.id] || 0;
+        const card = document.createElement('div');
+        card.className = `item-card ${qty > 0 ? 'has-qty' : ''}`;
+        card.innerHTML = `
+          <div class="item-name">${item.name}</div>
+          <div class="stepper">
+            <button class="btn-step" onclick="adjustQty(${item.id}, -1)">-</button>
+            <span class="step-val">${qty}</span>
+            <button class="btn-step" onclick="adjustQty(${item.id}, 1)">+</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function adjustQty(id, delta) {
+      tempCounts[id] = Math.max(0, (tempCounts[id] || 0) + delta);
+      renderModalItems();
+    }
+
+    function saveLocally() {
+      if (!activeVilla) return;
+      pushState();
+
+      const itemsObj = {};
+      let totalQty = 0;
+
+      inventory.forEach(item => {
+        const q = tempCounts[item.id] || 0;
+        if (q > 0) { itemsObj[item.id] = q; totalQty += q; }
+      });
+
+      if (totalQty === 0) {
+        delete localData[activeVilla];
+      } else {
+        localData[activeVilla] = {
+          zone: currentZone,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          items: itemsObj
+        };
+      }
+
+      localStorage.setItem('minibar_entries', JSON.stringify(localData));
+      closeModal();
+      renderGrid();
+    }
+
+    async function exportToExcel() {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet(`${currentZone} Zone Matrix`);
+      const exportVillas = (currentZone === 'Beach' ? beachVillas : waterVillas).map(String);
+      const dateVal = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      sheet.mergeCells(1, 1, 1, exportVillas.length + 6);
+      const titleCell = sheet.getCell(1, 1);
+      titleCell.value = `MINI BAR CONSUMPTION REPORT - ${currentZone.toUpperCase()} ZONE`;
+      titleCell.font = { name: "Inter", size: 14, bold: true, color: { argb: "FFFFFF" } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "0F172A" } };
+      titleCell.alignment = { horizontal: "center", vertical: "middle" };
+      sheet.getRow(1).height = 36;
+
+      sheet.mergeCells(2, 1, 2, exportVillas.length + 6);
+      const subCell = sheet.getCell(2, 1);
+      subCell.value = `Date: ${dateVal} | Generated on: ${new Date().toLocaleString()} | Active Zone: ${currentZone}`;
+      subCell.font = { name: "Inter", size: 9, italic: true, color: { argb: "64748B" } };
+      subCell.alignment = { horizontal: "center", vertical: "middle" };
+      sheet.getRow(2).height = 20;
+
+      sheet.addRow([]);
+
+      const headerValues = ["S.no", "Date", "ARTICLE", "Category", "UNIT", "Opening Room", ...exportVillas];
+      const headerRow = sheet.addRow(headerValues);
+      headerRow.height = 26;
+
+      const borderStyle = {
+        top: { style: 'thin', color: { argb: 'CBD5E1' } },
+        left: { style: 'thin', color: { argb: 'CBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+        right: { style: 'thin', color: { argb: 'CBD5E1' } }
+      };
+
+      headerRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "1E293B" } };
+        cell.font = { name: "Inter", size: 10, bold: true, color: { argb: "FFFFFF" } };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.border = borderStyle;
+      });
+
+      inventory.forEach((item, idx) => {
+        const rowData = [item.id, dateVal, item.name, item.cat, item.unit || "Each", 0];
+
+        exportVillas.forEach(v => {
+          const qty = (localData[v] && localData[v].items && localData[v].items[item.id]) ? localData[v].items[item.id] : 0;
+          rowData.push(qty);
+        });
+
+        const row = sheet.addRow(rowData);
+        row.height = 20;
+        const isEven = idx % 2 === 0;
+
+        row.eachCell((cell, colNum) => {
+          cell.border = borderStyle;
+          cell.font = { name: "Inter", size: 9.5 };
+
+          const val = cell.value;
+          const isQtyCol = colNum >= 7;
+
+          if (isQtyCol && typeof val === 'number' && val > 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "BAE6FD" } };
+            cell.font = { name: "Inter", size: 9.5, bold: true, color: { argb: "0284C7" } };
+          } else if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "F8FAFC" } };
+          } else {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "FFFFFF" } };
+          }
+
+          cell.alignment = { horizontal: colNum >= 6 ? "center" : (colNum === 2 ? "center" : "left"), vertical: "middle" };
+        });
+      });
+
+      sheet.columns.forEach((col, idx) => {
+        if (idx === 1) col.width = 14;
+        else if (idx === 2) col.width = 30;
+        else if (idx === 3) col.width = 14;
+        else col.width = 9;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileName = `Minibar_${currentZone}_Zone_${dateVal}.xlsx`;
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, fileName);
+    }
+
+    async function mergeAndExportMasterXL() {
+      const beachFileInput = document.getElementById('uploadBeachFile');
+      const waterFileInput = document.getElementById('uploadWaterFile');
+
+      if (!beachFileInput.files[0] || !waterFileInput.files[0]) {
+        alert("Please select both Beach Zone and Water Zone Excel files to merge.");
+        return;
+      }
+
+      try {
+        const masterWorkbook = new ExcelJS.Workbook();
+        const loadSheetIntoWorkbook = async (file, sheetName) => {
+          const buffer = await file.arrayBuffer();
+          const tempWb = new ExcelJS.Workbook();
+          await tempWb.xlsx.load(buffer);
+          
+          const srcSheet = tempWb.worksheets[0];
+          const destSheet = masterWorkbook.addWorksheet(sheetName);
+
+          srcSheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+            const destRow = destSheet.getRow(rowNumber);
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+              const destCell = destRow.getCell(colNumber);
+              destCell.value = cell.value;
+              destCell.style = JSON.parse(JSON.stringify(cell.style || {}));
+            });
+            destRow.commit();
+          });
+        };
+
+        await loadSheetIntoWorkbook(beachFileInput.files[0], 'Beach Zone');
+        await loadSheetIntoWorkbook(waterFileInput.files[0], 'Water Zone');
+
+        const buffer = await masterWorkbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, `Minibar_MASTER_Report.xlsx`);
+        alert("Master Excel merged downloaded successfully!");
+      } catch (err) {
+        alert("Failed to merge Excel files.");
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedZone = localStorage.getItem('minibar_active_zone') || 'Beach';
+      switchZone(savedZone);
+
+      const savedScale = localStorage.getItem('minibar_ui_scale') || 0.95;
+      document.getElementById('uiScaleSlider').value = savedScale;
+      onUIScaleChange(savedScale);
+
+      const savedCols = localStorage.getItem('minibar_grid_cols') || 6;
+      document.getElementById('mainZoomSlider').value = savedCols;
+      onMainGridZoomChange(savedCols);
+
+      const savedTheme = localStorage.getItem('minibar_theme_dark');
+      const isDark = savedTheme !== null ? JSON.parse(savedTheme) : true;
+      document.getElementById('themeToggleCheckbox').checked = isDark;
+      toggleTheme(isDark);
+
+      renderGrid();
+      updateUndoRedoUI();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
