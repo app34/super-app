@@ -16,5 +16,11 @@
     "name": "Translation",
     "path": "translation/index.html",
     "icon": "🌐"
+  },
+  {
+    "id": "minibar",
+    "name": "Minibar",
+    "path": "mini-bar/index.html",
+    "icon": "🍻"
   }
 ]
