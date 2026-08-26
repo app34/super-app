@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.3.0';
+const CACHE_VERSION = 'v1.5.0';
 const CACHE_NAME = `super-app-${CACHE_VERSION}`;
 
 const ASSETS = [
